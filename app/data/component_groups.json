@@ -1,0 +1,145 @@
+{
+  "component_groups": [
+    {
+      "ComponentGroup": "Battery",
+      "ContainerName": [
+        "a_battery_brand",
+        "a_battery_capacity",
+        "a_battery_capacityuom",
+        "a_battery_life",
+        "a_battery_nbcells",
+        "a_battery_type"
+      ]
+    },
+    {
+      "ComponentGroup": "Appearance/WebCam",
+      "ContainerName": [
+        "a_camera_brand",
+        "a_camera_brand_02",
+        "a_camera_ir",
+        "a_camera_location",
+        "a_camera_location_02",
+        "a_camera_micro",
+        "a_camera_resolution",
+        "a_camera_respix",
+        "a_camera_respixuom",
+        "a_camera_respixuom_02",
+        "a_camera_respix_02",
+        "a_camera_resvert"
+      ]
+    },
+    {
+      "ComponentGroup": "Display",
+      "ContainerName": [
+        "a_display_backlight",
+        "a_display_bezel",
+        "a_display_bright",
+        "a_display_brightuom",
+        "a_display_dynamrange",
+        "a_display_glass",
+        "a_display_glassedge",
+        "a_display_interface",
+        "a_display_paneltech",
+        "a_display_refresh",
+        "a_display_refreshuom",
+        "a_display_resolution",
+        "a_display_respixels",
+        "a_display_response",
+        "a_display_responseuom",
+        "a_display_sectech",
+        "a_display_size",
+        "a_display_sizemet",
+        "a_display_sizemetuom",
+        "a_display_sizeuom",
+        "a_display_surftreat",
+        "a_display_technology",
+        "a_display_touchscrtype"
+      ]
+    },
+    {
+      "ComponentGroup": "Graphic card",
+      "ContainerName": [
+        "a_graphics_brand",
+        "a_graphics_cooling",
+        "a_graphics_family",
+        "a_graphics_memorysize",
+        "a_graphics_memorysizeuom",
+        "a_graphics_memorytype",
+        "a_graphics_modelno",
+        "a_graphics_overclocking"
+      ]
+    },
+    {
+      "ComponentGroup": "Memory",
+      "ContainerName": [
+        "a_memory_brand",
+        "a_memory_ecc",
+        "a_memory_ecctype",
+        "a_memory_lighting",
+        "a_memory_moduletype",
+        "a_memory_profiletech",
+        "a_memory_size",
+        "a_memory_sizeuom",
+        "a_memory_slotsno",
+        "a_memory_speed",
+        "a_memory_speeduom",
+        "a_memory_type"
+      ]
+    },
+    {
+      "ComponentGroup": "Processor",
+      "ContainerName": [
+        "a_processor_brand",
+        "a_processor_familyshort",
+        "a_processor_freqtech",
+        "a_processor_generation",
+        "a_processor_graphics",
+        "a_processor_model",
+        "a_processor_spdmax",
+        "a_processor_spdmaxuom",
+        "a_processor_speed",
+        "a_processor_speeduom",
+        "a_processor_threads",
+        "a_processor_type"
+      ]
+    },
+    {
+      "ComponentGroup": "Hard Drive",
+      "ContainerName": [
+        "a_storage_brand_01",
+        "a_storage_brand_02",
+        "a_storage_brand_03",
+        "a_storage_capacityuom_01",
+        "a_storage_capacityuom_02",
+        "a_storage_capacityuom_03",
+        "a_storage_capacity_01",
+        "a_storage_capacity_02",
+        "a_storage_capacity_03",
+        "a_storage_encypt_01",
+        "a_storage_encypt_02",
+        "a_storage_encypt_03",
+        "a_storage_ffactor_01",
+        "a_storage_ffactor_02",
+        "a_storage_ffactor_03",
+        "a_storage_interfaceprot_01",
+        "a_storage_interfaceprot_02",
+        "a_storage_interfaceprot_03",
+        "a_storage_interface_01",
+        "a_storage_interface_02",
+        "a_storage_interface_03",
+        "a_storage_memtech_01",
+        "a_storage_memtech_02",
+        "a_storage_memtech_03",
+        "a_storage_speeduom_01",
+        "a_storage_speeduom_02",
+        "a_storage_speeduom_03",
+        "a_storage_speed_01",
+        "a_storage_speed_02",
+        "a_storage_speed_03",
+        "a_storage_type_01",
+        "a_storage_type_02",
+        "a_storage_type_03"
+      ]
+    }
+  ]
+}

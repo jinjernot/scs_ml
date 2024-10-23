@@ -1,0 +1,28 @@
+{
+  "excluded_containers": [
+    "prodfinish",
+    "ecohighlighgraphic",
+    "colour",
+    "displaycolorgamut",
+    "productcolour",
+    "displaycolorgamut",
+    "tsfootnote_11",
+    "tsfootnote_12",
+    "tsfootnote_02",
+    "tsfootnote_06",
+    "tsfootnote_07",
+    "tsfootnote_46",
+    "tsfootnote_13",
+    "tsfootnote_01",
+    "tsfootnote_24",
+    "facet_processortype",
+    "facet_graphics",
+    "facet_cap",
+    "facet_processorgen",
+    "facet_environ",
+    "facet_os",
+    "facet_scrnsizeus",
+    "facet_memstd",
+    "facet_maxres"
+  ]
+}
