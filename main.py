@@ -8,10 +8,10 @@ from sklearn.naive_bayes import MultinomialNB
 from sklearn.metrics import accuracy_score
 
 # Paths
-folder_path =           './app/data/json_ml'
-input_excel_path =      './file.xlsx'  
-output_excel_path =     './granulated_predictions.xlsx'  
-excluded_words_path =   './app/data/excluded_words.json'
+folder_path = './app/data/json_ml'
+input_excel_path = './file.xlsx'  
+output_excel_path = './granulated_predictions.xlsx'  
+excluded_words_path = './app/data/excluded_words.json'
 component_groups_path = './app/data/component_groups.json'
 excluded_containers_path = './app/data/excluded_containers.json'
 
@@ -161,23 +161,21 @@ else:
             'ContainerValue': input_df['ContainerValue'].tolist()
         }
 
-        # Get the number of rows in the input DataFrame
-        num_rows = len(input_df)
-
-        # Loop through each file to generate predictions separately for each
+        # Loop through each JSON file to generate predictions separately for each
         for file_name in os.listdir(folder_path):
             if file_name.endswith('.json'):
                 file_path = os.path.join(folder_path, file_name)
                 file_label = file_name.replace('.json', '')
 
-                # Create a list filled with None initially, so it has the same length as 'ContainerValue'
-                predictions_for_file = [None] * num_rows
+                # Create a list filled with None initially
+                values_for_file = [None] * len(input_df)  # Use len(input_df) for correct size
 
                 for idx, value in enumerate(input_df['ContainerValue']):
-                    # Split the value into individual words/phrases using regex
-                    words = re.findall(r'\b\w+(?:[\w™]+)?\b', value)  # Match words with special characters like ™
+                    # Split the value into individual words
+                    words = value.split()  # Split based on whitespace
 
-                    predicted_word = None
+                    # Initialize a variable to store the corresponding ContainerValue
+                    matched_container_value = None
 
                     # Try to predict based on each word in the ContainerValue
                     for word in words:
@@ -190,16 +188,29 @@ else:
                             input_vec = vectorizer.transform([word])  # Vectorize each word individually
                             predicted_tag = model.predict(input_vec)
 
-                            # Only set the word if the prediction matches the current file label
+                            # If the predicted tag matches the current file label, get the corresponding ContainerValue
                             if predicted_tag[0] == file_label:
-                                predicted_word = word  # Save the actual word, not the tag
+                                # Now we need to extract the corresponding ContainerValue from the JSON file
+                                with open(file_path, 'r', encoding='utf-8') as json_file:
+                                    try:
+                                        data = json.load(json_file)
+                                        # Iterate through the entries to find the matching ContainerValue
+                                        for entry in data.get(file_label, []):  # Assuming the structure holds the file_label key
+                                            if 'ContainerValue' in entry:
+                                                matched_container_value = entry['ContainerValue']
+                                                break  # Exit the loop once we find a match
+                                    except json.JSONDecodeError as e:
+                                        print(f"Error decoding JSON in file {file_path}: {e}")
+                                        break  # Exit if there's an error loading the JSON
+
+                                # Store the matched ContainerValue
                                 break  # Stop after the first match
 
-                    # Add the predicted word (or None if no valid prediction found)
-                    predictions_for_file[idx] = predicted_word
+                    # Add the matched ContainerValue (or None if no valid prediction found)
+                    values_for_file[idx] = matched_container_value
 
-                # Add the predictions to the results dictionary using the file label as the column name
-                prediction_results[file_label] = predictions_for_file
+                # Add the values to the results dictionary using the file label as the column name
+                prediction_results[file_label] = values_for_file
 
         # Convert the prediction results to a DataFrame
         prediction_results_df = pd.DataFrame(prediction_results)
@@ -209,7 +220,7 @@ else:
 
         # Save the predictions DataFrame to Excel
         prediction_results_df.to_excel(output_excel_path, index=False)
-        print(f"Granulated predictions saved to {output_excel_path}")
+        print(f"Granulated predictions saved to {output_excel_path} with ContainerValues.")
 
         # Display the final DataFrame structure
         print(prediction_results_df.head())
