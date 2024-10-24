@@ -1,6 +1,7 @@
 import os
 import json
 import pandas as pd
+import re  # Import regex library
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.naive_bayes import MultinomialNB
@@ -93,13 +94,11 @@ def process_json_file(file_path, file_label):
             print(f"Expected a list for key '{key}' in {file_path}, but got {type(entries).__name__}")
 
 for file_name in os.listdir(folder_path):
-    
     if file_name.endswith('.json'):
         file_path = os.path.join(folder_path, file_name)
         
         if os.path.exists(file_path):
             print(f"Processing file: {file_path}")
-            
             file_label = file_name.replace('.json', '')
             process_json_file(file_path, file_label)
         else:
@@ -123,8 +122,8 @@ else:
             df['ContainerValue'], df['FileLabel'], test_size=0.2, random_state=42
         )
 
-        # Vectorize the text data
-        vectorizer = TfidfVectorizer()
+        # Vectorize the text data using n-grams (bigrams and trigrams)
+        vectorizer = TfidfVectorizer(ngram_range=(1, 3), token_pattern=r'\b\w+\b')
         X_train_vec = vectorizer.fit_transform(X_train)
         X_test_vec = vectorizer.transform(X_test)
 
@@ -175,8 +174,8 @@ else:
                 predictions_for_file = [None] * num_rows
 
                 for idx, value in enumerate(input_df['ContainerValue']):
-                    # Split the value into individual words
-                    words = value.split()  # Split based on whitespace
+                    # Split the value into individual words/phrases using regex
+                    words = re.findall(r'\b\w+(?:[\w™]+)?\b', value)  # Match words with special characters like ™
 
                     predicted_word = None
 
