@@ -205,6 +205,9 @@ else:
         # Convert the prediction results to a DataFrame
         prediction_results_df = pd.DataFrame(prediction_results)
 
+        # Remove columns where all values are NaN
+        prediction_results_df = prediction_results_df.dropna(axis=1, how='all')
+
         # Save the predictions DataFrame to Excel
         prediction_results_df.to_excel(output_excel_path, index=False)
         print(f"Granulated predictions saved to {output_excel_path}")
