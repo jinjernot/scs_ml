@@ -3,7 +3,6 @@
     {
       "ComponentGroup": "Battery",
       "ContainerName": [
-        "a_battery_brand",
         "a_battery_capacity",
         "a_battery_capacityuom",
         "a_battery_life",
