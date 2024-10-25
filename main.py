@@ -124,7 +124,8 @@ else:
 
         vectorizer = TfidfVectorizer(
             ngram_range=(1, 2), 
-            token_pattern=r"(?u)\b\w+[\w®™\-+]*\b"  # Updated pattern to include special characters
+            token_pattern=r"(?u)\b\S+\b",
+            lowercase=False
         )
         X_train_vec = vectorizer.fit_transform(X_train)
         X_test_vec = vectorizer.transform(X_test)
