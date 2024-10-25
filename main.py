@@ -1,7 +1,7 @@
 import os
 import json
 import pandas as pd
-import re  # Import regex library
+import re
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.naive_bayes import MultinomialNB
@@ -14,6 +14,7 @@ output_excel_path = './granulated_predictions.xlsx'
 excluded_words_path = './app/data/excluded_words.json'
 component_groups_path = './app/data/component_groups.json'
 excluded_containers_path = './app/data/excluded_containers.json'
+vocabulary_output_path = './vocabulary.xlsx'  # Path to save the vocabulary
 
 records = []
 
@@ -65,7 +66,7 @@ print(f"Excluded words: {excluded_words}")
 print(f"Loaded component groups: {component_groups}")
 print(f"Excluded containers: {excluded_containers}")
 
-# Process JSON files
+# Process JSON files to include data from all files for training
 def process_json_file(file_path, file_label):
     global records
     
@@ -85,7 +86,7 @@ def process_json_file(file_path, file_label):
             for entry in entries:
                 if isinstance(entry, dict) and 'ContainerValue' in entry:
                     records.append({
-                        'FileLabel': file_label,  # This will be used as the target label
+                        'FileLabel': file_label,
                         'ContainerValue': entry['ContainerValue']
                     })
                 else:
@@ -96,7 +97,6 @@ def process_json_file(file_path, file_label):
 for file_name in os.listdir(folder_path):
     if file_name.endswith('.json'):
         file_path = os.path.join(folder_path, file_name)
-        
         if os.path.exists(file_path):
             print(f"Processing file: {file_path}")
             file_label = file_name.replace('.json', '')
@@ -122,11 +122,18 @@ else:
             df['ContainerValue'], df['FileLabel'], test_size=0.2, random_state=42
         )
 
-        # Vectorize the text data using n-grams (bigrams and trigrams)
-        vectorizer = TfidfVectorizer(ngram_range=(1, 2), token_pattern=r'\b\w+\b')
+        vectorizer = TfidfVectorizer(
+            ngram_range=(1, 2), 
+            token_pattern=r"(?u)\b\w+[\w®™\-+]*\b"  # Updated pattern to include special characters
+        )
         X_train_vec = vectorizer.fit_transform(X_train)
         X_test_vec = vectorizer.transform(X_test)
 
+        # Save the vocabulary to an Excel file
+        vocabulary = vectorizer.vocabulary_
+        vocabulary_df = pd.DataFrame(vocabulary.items(), columns=['Term', 'Index'])
+        vocabulary_df.to_excel(vocabulary_output_path, index=False)
+        print(f"Vocabulary saved to {vocabulary_output_path}")
         # Train the model
         model = MultinomialNB()
         model.fit(X_train_vec, y_train)
@@ -139,14 +146,14 @@ else:
         print(f"Model accuracy: {accuracy * 100:.2f}%")
 
         # Load the input data from the specified Excel file for prediction
-        input_df = pd.read_excel(input_excel_path)  # Load the Excel file
+        input_df = pd.read_excel(input_excel_path)
 
         # Drop rows where 'ContainerValue' is '[BLANK]' or null
-        input_df = input_df.dropna(subset=['ContainerValue', 'ComponentGroup'])  # Include 'ComponentGroup' in the drop condition
-        input_df = input_df[input_df['ContainerValue'] != '[BLANK]']  # Drop rows where 'ContainerValue' is '[BLANK]'
+        input_df = input_df.dropna(subset=['ContainerValue', 'ComponentGroup'])
+        input_df = input_df[input_df['ContainerValue'] != '[BLANK]']
 
         # Exclude rows where 'ContainerName' is in the excluded_containers list
-        input_df = input_df[~input_df['ContainerName'].isin(excluded_containers)]  # Exclude rows based on 'ContainerName'
+        input_df = input_df[~input_df['ContainerName'].isin(excluded_containers)]
 
         # Remove trailing semicolons from 'ContainerValue'
         input_df['ContainerValue'] = input_df['ContainerValue'].str.rstrip(';')
@@ -167,49 +174,38 @@ else:
                 file_path = os.path.join(folder_path, file_name)
                 file_label = file_name.replace('.json', '')
 
-                # Create a list filled with None initially
-                values_for_file = [None] * len(input_df)  # Use len(input_df) for correct size
+                values_for_file = [None] * len(input_df)
 
                 for idx, value in enumerate(input_df['ContainerValue']):
-                    # Split the value into individual words
-                    words = value.split()  # Split based on whitespace
+                    words = value.split()
 
-                    # Initialize a variable to store the corresponding ContainerValue
                     matched_container_value = None
 
-                    # Try to predict based on each word in the ContainerValue
                     for word in words:
                         if word in excluded_words:
                             print(f"Word '{word}' is in the excluded list, skipping...")
                             continue
 
                         if word in vectorizer.vocabulary_:
-                            # Vectorize the word
-                            input_vec = vectorizer.transform([word])  # Vectorize each word individually
+                            input_vec = vectorizer.transform([word])
                             predicted_tag = model.predict(input_vec)
 
-                            # If the predicted tag matches the current file label, get the corresponding ContainerValue
                             if predicted_tag[0] == file_label:
-                                # Now we need to extract the corresponding ContainerValue from the JSON file
                                 with open(file_path, 'r', encoding='utf-8') as json_file:
                                     try:
                                         data = json.load(json_file)
-                                        # Iterate through the entries to find the matching ContainerValue
-                                        for entry in data.get(file_label, []):  # Assuming the structure holds the file_label key
+                                        for entry in data.get(file_label, []):
                                             if 'ContainerValue' in entry:
                                                 matched_container_value = entry['ContainerValue']
-                                                break  # Exit the loop once we find a match
+                                                break
                                     except json.JSONDecodeError as e:
                                         print(f"Error decoding JSON in file {file_path}: {e}")
-                                        break  # Exit if there's an error loading the JSON
+                                        break
 
-                                # Store the matched ContainerValue
-                                break  # Stop after the first match
+                                break
 
-                    # Add the matched ContainerValue (or None if no valid prediction found)
                     values_for_file[idx] = matched_container_value
 
-                # Add the values to the results dictionary using the file label as the column name
                 prediction_results[file_label] = values_for_file
 
         # Convert the prediction results to a DataFrame

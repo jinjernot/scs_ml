@@ -30,7 +30,8 @@ def clean_json_file(file_path):
             cleaned_entries = []
             for entry in entries:
                 if isinstance(entry, dict):
-                    if entry.get("ContainerValue") == "[BLANK]":
+                    # Check for removal conditions
+                    if entry.get("ContainerValue") in ["[BLANK]", ""]:
                         removed_records.append({
                             'file': file_path,
                             'key': key,

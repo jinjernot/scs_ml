@@ -2,7 +2,7 @@ import os
 import json
 import pandas as pd
 import numpy as np
-import re  # Import regex library
+import re
 import tensorflow as tf
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Embedding, LSTM, Dense, Dropout
@@ -152,14 +152,14 @@ else:
         print(f"Model accuracy: {accuracy * 100:.2f}%")
 
         # Load the input data from the specified Excel file for prediction
-        input_df = pd.read_excel(input_excel_path)  # Load the Excel file
+        input_df = pd.read_excel(input_excel_path)
 
         # Drop rows where 'ContainerValue' is '[BLANK]' or null
-        input_df = input_df.dropna(subset=['ContainerValue', 'ComponentGroup'])  # Include 'ComponentGroup' in the drop condition
-        input_df = input_df[input_df['ContainerValue'] != '[BLANK]']  # Drop rows where 'ContainerValue' is '[BLANK]'
+        input_df = input_df.dropna(subset=['ContainerValue', 'ComponentGroup'])
+        input_df = input_df[input_df['ContainerValue'] != '[BLANK]']
 
         # Exclude rows where 'ContainerName' is in the excluded_containers list
-        input_df = input_df[~input_df['ContainerName'].isin(excluded_containers)]  # Exclude rows based on 'ContainerName'
+        input_df = input_df[~input_df['ContainerName'].isin(excluded_containers)]
 
         # Remove trailing semicolons from 'ContainerValue'
         input_df['ContainerValue'] = input_df['ContainerValue'].str.rstrip(';')
