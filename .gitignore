@@ -1,3 +1,6 @@
 json_ml
 *.xlsx
 myenv
+__pycache__
+spacy_data
+spacy_textcat_model

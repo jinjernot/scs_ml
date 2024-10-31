@@ -14,7 +14,7 @@ output_excel_path = './granulated_predictions.xlsx'
 excluded_words_path = './app/data/excluded_words.json'
 component_groups_path = './app/data/component_groups.json'
 excluded_containers_path = './app/data/excluded_containers.json'
-vocabulary_output_path = './vocabulary.xlsx'  # Path to save the vocabulary
+vocabulary_output_path = './vocabulary.xlsx'
 
 records = []
 
