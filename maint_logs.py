@@ -1,12 +1,11 @@
 import os
 import json
 import pandas as pd
-
+import re
+from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.naive_bayes import MultinomialNB
-from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
-from sklearn.utils import resample
 
 # Paths
 folder_path = './app/data/json_ml'
@@ -118,19 +117,13 @@ else:
     if df.empty:
         print("The DataFrame is empty after removing rows with missing values.")
     else:
-        # Group by 'FileLabel' and 'ContainerValue' and count occurrences
-        df = df.groupby(['FileLabel', 'ContainerValue']).size().reset_index(name='Count')
-        
-        # Remove the 'Count' column since we are gathering each value individually
-        df = df.drop(columns=['Count'])
-
         # Split the data into training and testing sets
         X_train, X_test, y_train, y_test = train_test_split(
             df['ContainerValue'], df['FileLabel'], test_size=0.2, random_state=42
         )
 
         vectorizer = TfidfVectorizer(
-            ngram_range=(1, 5), 
+            ngram_range=(1, 3), 
             token_pattern=r"(?u)\b\S+\b",
             lowercase=False
         )
@@ -147,86 +140,36 @@ else:
         model = MultinomialNB()
         model.fit(X_train_vec, y_train)
 
+        # Log predictions on the training data
+        y_train_pred = model.predict(X_train_vec)
+        train_predictions_df = pd.DataFrame({
+            'Actual': y_train,
+            'Predicted': y_train_pred
+        })
+        amd_train_predictions = train_predictions_df[train_predictions_df['Predicted'] == 'AMD']
+        print("Training predictions where label is 'AMD':")
+        print(amd_train_predictions)
+
+        # Save train predictions to CSV
+        train_predictions_df.to_csv("train_predictions_log.csv", index=False)
+        print("Training predictions saved to train_predictions_log.csv.")
+
         # Make predictions on the test set
-        y_pred = model.predict(X_test_vec)
+        y_test_pred = model.predict(X_test_vec)
+
+        # Log test predictions
+        test_predictions_df = pd.DataFrame({
+            'Actual': y_test,
+            'Predicted': y_test_pred
+        })
+        amd_test_predictions = test_predictions_df[test_predictions_df['Predicted'] == 'AMD']
+        print("Test predictions where label is 'AMD':")
+        print(amd_test_predictions)
+
+        # Save test predictions to CSV
+        test_predictions_df.to_csv("test_predictions_log.csv", index=False)
+        print("Test predictions saved to test_predictions_log.csv.")
 
         # Evaluate the model
-        accuracy = accuracy_score(y_test, y_pred)
+        accuracy = accuracy_score(y_test, y_test_pred)
         print(f"Model accuracy: {accuracy * 100:.2f}%")
-
-        # Load the input data from the specified Excel file for prediction
-        input_df = pd.read_excel(input_excel_path)
-
-        # Drop rows where 'ContainerValue' is '[BLANK]' or null
-        input_df = input_df.dropna(subset=['ContainerValue', 'ComponentGroup'])
-        input_df = input_df[input_df['ContainerValue'] != '[BLANK]']
-
-        # Exclude rows where 'ContainerName' is in the excluded_containers list
-        input_df = input_df[~input_df['ContainerName'].isin(excluded_containers)]
-
-        # Remove trailing semicolons from 'ContainerValue'
-        input_df['ContainerValue'] = input_df['ContainerValue'].str.rstrip(';')
-
-        # Ensure 'ContainerValue' column is consistently formatted
-        input_df['ContainerValue'] = input_df['ContainerValue'].apply(lambda x: str(x).encode('utf-8').decode('utf-8'))
-
-        # Initialize a dictionary to hold the prediction columns for each file
-        prediction_results = {
-            'ComponentGroup': input_df['ComponentGroup'].tolist(),
-            'ContainerName': input_df['ContainerName'].tolist(),
-            'ContainerValue': input_df['ContainerValue'].tolist()
-        }
-
-        # Loop through each JSON file to generate predictions separately for each
-        for file_name in os.listdir(folder_path):
-            if file_name.endswith('.json'):
-                file_path = os.path.join(folder_path, file_name)
-                file_label = file_name.replace('.json', '')
-
-                values_for_file = [None] * len(input_df)
-
-                for idx, value in enumerate(input_df['ContainerValue']):
-                    words = value.split()
-
-                    matched_container_value = None
-
-                    # Gather predictions for each word individually
-                    for word in words:
-                        if word in excluded_words:
-                            print(f"Word '{word}' is in the excluded list, skipping...")
-                            continue
-
-                        if word in vectorizer.vocabulary_:
-                            input_vec = vectorizer.transform([word])
-                            predicted_tag = model.predict(input_vec)
-
-                            # Store the first matched container value for the current word
-                            if predicted_tag[0] == file_label:
-                                with open(file_path, 'r', encoding='utf-8') as json_file:
-                                    try:
-                                        data = json.load(json_file)
-                                        for entry in data.get(file_label, []):
-                                            if 'ContainerValue' in entry:
-                                                matched_container_value = entry['ContainerValue']
-                                                break
-                                    except json.JSONDecodeError as e:
-                                        print(f"Error decoding JSON in file {file_path}: {e}")
-                                        break
-
-                                # No need to break; gather all values individually
-                                values_for_file[idx] = matched_container_value
-
-                prediction_results[file_label] = values_for_file
-
-        # Convert the prediction results to a DataFrame
-        prediction_results_df = pd.DataFrame(prediction_results)
-
-        # Remove columns where all values are NaN
-        prediction_results_df = prediction_results_df.dropna(axis=1, how='all')
-
-        # Save the predictions DataFrame to Excel
-        prediction_results_df.to_excel(output_excel_path, index=False)
-        print(f"Granulated predictions saved to {output_excel_path} with ContainerValues.")
-
-        # Display the final DataFrame structure
-        print(prediction_results_df.head())
