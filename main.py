@@ -8,14 +8,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 from sklearn.utils import resample
 
-# Paths
-folder_path = './app/data/json_ml'
-input_excel_path = './file.xlsx'  
-output_excel_path = './granulated_predictions.xlsx'  
-excluded_words_path = './app/data/excluded_words.json'
-component_groups_path = './app/data/component_groups.json'
-excluded_containers_path = './app/data/excluded_containers.json'
-vocabulary_output_path = './vocabulary.xlsx'
+from config.paths import *
 
 records = []
 
@@ -59,9 +52,9 @@ def load_excluded_containers(file_path):
         return []
 
 # Load data
-excluded_words = load_excluded_words(excluded_words_path)
-component_groups = load_component_groups(component_groups_path)
-excluded_containers = load_excluded_containers(excluded_containers_path)
+excluded_words = load_excluded_words(EXCLUDED_WORDS_PATH)
+component_groups = load_component_groups(COMPONENT_GROUPS_PATH)
+excluded_containers = load_excluded_containers(EXCLUDED_CONTAINERS_PATH)
 
 print(f"Excluded words: {excluded_words}")
 print(f"Loaded component groups: {component_groups}")
@@ -95,9 +88,9 @@ def process_json_file(file_path, file_label):
         else:
             print(f"Expected a list for key '{key}' in {file_path}, but got {type(entries).__name__}")
 
-for file_name in os.listdir(folder_path):
+for file_name in os.listdir(FOLDER_PATH):
     if file_name.endswith('.json'):
-        file_path = os.path.join(folder_path, file_name)
+        file_path = os.path.join(FOLDER_PATH, file_name)
         if os.path.exists(file_path):
             print(f"Processing file: {file_path}")
             file_label = file_name.replace('.json', '')
@@ -140,8 +133,8 @@ else:
         # Save the vocabulary to an Excel file
         vocabulary = vectorizer.vocabulary_
         vocabulary_df = pd.DataFrame(vocabulary.items(), columns=['Term', 'Index'])
-        vocabulary_df.to_excel(vocabulary_output_path, index=False)
-        print(f"Vocabulary saved to {vocabulary_output_path}")
+        vocabulary_df.to_excel(VOCABULARY_OUTPUT_PATH, index=False)
+        print(f"Vocabulary saved to {VOCABULARY_OUTPUT_PATH}")
         
         # Train the model
         model = MultinomialNB()
@@ -155,7 +148,7 @@ else:
         print(f"Model accuracy: {accuracy * 100:.2f}%")
 
         # Load the input data from the specified Excel file for prediction
-        input_df = pd.read_excel(input_excel_path)
+        input_df = pd.read_excel(INPUT_EXCEL_PATH)
 
         # Drop rows where 'ContainerValue' is '[BLANK]' or null
         input_df = input_df.dropna(subset=['ContainerValue', 'ComponentGroup'])
@@ -178,9 +171,9 @@ else:
         }
 
         # Loop through each JSON file to generate predictions separately for each
-        for file_name in os.listdir(folder_path):
+        for file_name in os.listdir(FOLDER_PATH):
             if file_name.endswith('.json'):
-                file_path = os.path.join(folder_path, file_name)
+                file_path = os.path.join(FOLDER_PATH, file_name)
                 file_label = file_name.replace('.json', '')
 
                 values_for_file = [None] * len(input_df)
@@ -225,8 +218,8 @@ else:
         prediction_results_df = prediction_results_df.dropna(axis=1, how='all')
 
         # Save the predictions DataFrame to Excel
-        prediction_results_df.to_excel(output_excel_path, index=False)
-        print(f"Granulated predictions saved to {output_excel_path} with ContainerValues.")
+        prediction_results_df.to_excel(OUTPUT_EXCEL_PATH, index=False)
+        print(f"Granulated predictions saved to {OUTPUT_EXCEL_PATH} with ContainerValues.")
 
         # Display the final DataFrame structure
         print(prediction_results_df.head())
