@@ -102,6 +102,29 @@
         "a_processor_type"
       ]
     },
+
+    {
+      "ComponentGroup": "Keyboard",
+      "ContainerName": [
+        "a_kbd_connect",
+        "a_kbd_interface",
+        "a_kbd_name",
+        "a_display_bezel",
+        "a_kbd_color",
+        "a_kbd_backlight",
+        "a_kbd_blitzone",
+        "a_kbd_features",
+        "a_kbd_keypad",
+        "a_kbd_material",
+        "a_kbd_protection",
+        "a_kbd_ptdevice",
+        "a_kbd_size",
+        "a_kbd_technology"
+      ]
+    },
+
+
+
     {
       "ComponentGroup": "Hard Drive",
       "ContainerName": [

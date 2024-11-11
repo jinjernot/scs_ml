@@ -7,7 +7,6 @@ from sklearn.naive_bayes import MultinomialNB
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 from sklearn.utils import resample
-
 from config.paths import *
 
 records = []
@@ -37,6 +36,53 @@ def load_component_groups(file_path):
     except json.JSONDecodeError:
         print(f"Error decoding JSON file: {file_path}")
         return []
+
+
+# Load container names within each component group and export to Excel
+def export_container_groups_to_excel(component_groups, output_path):
+    # Check if component_groups has data
+    if not component_groups:
+        print("No component groups loaded. Please check the JSON structure and path.")
+        return
+
+    # Create a list to hold data for export
+    container_group_data = []
+    
+    # Iterate through each group in component_groups
+    for group in component_groups:
+        # Get the component group name
+        group_name = group.get("ComponentGroup", "Unknown Group")
+        
+        # Get the list of container names
+        containers = group.get("ContainerName", [])
+        
+        # Check if there are containers in the current group
+        if not containers:
+            print(f"No containers found in group '{group_name}'")
+            continue
+
+        # Add each container name along with its group to the export list
+        for container_name in containers:
+            container_group_data.append({
+                "GroupName": group_name,
+                "ContainerName": container_name
+            })
+
+    # Convert the data to a DataFrame
+    container_groups_df = pd.DataFrame(container_group_data)
+    
+    # Check if the DataFrame is not empty before exporting
+    if not container_groups_df.empty:
+        container_groups_df.to_excel(output_path, index=False)
+        print(f"Container groups exported to {output_path}")
+    else:
+        print("No container data to export.")
+
+# Load component groups from JSON file
+component_groups = load_component_groups(COMPONENT_GROUPS_PATH)
+
+# Export container groups to Excel
+export_container_groups_to_excel(component_groups, CONTAINER_GROUPS_OUTPUT_PATH)
 
 # Load excluded containers
 def load_excluded_containers(file_path):
@@ -81,7 +127,9 @@ def process_json_file(file_path, file_label):
                 if isinstance(entry, dict) and 'ContainerValue' in entry:
                     records.append({
                         'FileLabel': file_label,
-                        'ContainerValue': entry['ContainerValue']
+                        'ContainerValue': entry['ContainerValue'],
+                        'ComponentGroup': entry.get('ComponentGroup'),
+                        'ContainerName': entry.get('ContainerName')
                     })
                 else:
                     print(f"Invalid entry structure in {file_path}: {entry}")
@@ -111,19 +159,13 @@ else:
     if df.empty:
         print("The DataFrame is empty after removing rows with missing values.")
     else:
-        # Group by 'FileLabel' and 'ContainerValue' and count occurrences
-        df = df.groupby(['FileLabel', 'ContainerValue']).size().reset_index(name='Count')
-        
-        # Remove the 'Count' column since we are gathering each value individually
-        df = df.drop(columns=['Count'])
-
         # Split the data into training and testing sets
         X_train, X_test, y_train, y_test = train_test_split(
             df['ContainerValue'], df['FileLabel'], test_size=0.2, random_state=42
         )
 
         vectorizer = TfidfVectorizer(
-            ngram_range=(1, 5), 
+            ngram_range=(1, 7), 
             token_pattern=r"(?u)\b\S+\b",
             lowercase=False
         )
@@ -135,7 +177,6 @@ else:
         vocabulary_df = pd.DataFrame(vocabulary.items(), columns=['Term', 'Index'])
         vocabulary_df.to_excel(VOCABULARY_OUTPUT_PATH, index=False)
         print(f"Vocabulary saved to {VOCABULARY_OUTPUT_PATH}")
-        
         # Train the model
         model = MultinomialNB()
         model.fit(X_train_vec, y_train)
@@ -183,7 +224,6 @@ else:
 
                     matched_container_value = None
 
-                    # Gather predictions for each word individually
                     for word in words:
                         if word in excluded_words:
                             print(f"Word '{word}' is in the excluded list, skipping...")
@@ -193,7 +233,6 @@ else:
                             input_vec = vectorizer.transform([word])
                             predicted_tag = model.predict(input_vec)
 
-                            # Store the first matched container value for the current word
                             if predicted_tag[0] == file_label:
                                 with open(file_path, 'r', encoding='utf-8') as json_file:
                                     try:
@@ -206,8 +245,9 @@ else:
                                         print(f"Error decoding JSON in file {file_path}: {e}")
                                         break
 
-                                # No need to break; gather all values individually
-                                values_for_file[idx] = matched_container_value
+                                break
+
+                    values_for_file[idx] = matched_container_value
 
                 prediction_results[file_label] = values_for_file
 

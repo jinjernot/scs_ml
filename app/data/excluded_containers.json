@@ -35,6 +35,7 @@
     "facet_os",
     "facet_scrnsizeus",
     "facet_memstd",
-    "facet_maxres"
+    "facet_maxres",
+    "touch"
   ]
 }
