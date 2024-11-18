@@ -10,8 +10,9 @@ from sklearn.metrics import accuracy_score
 from config.paths import *
 from app.core.load_data import *
 from app.core.export_data import *
+from app.core.process_data import *
 
-records = []
+
 
 # Load component groups from JSON file
 component_groups = load_component_groups(COMPONENT_GROUPS_PATH)
@@ -28,35 +29,6 @@ print(f"Excluded words: {excluded_words}")
 print(f"Loaded component groups: {component_groups}")
 print(f"Excluded containers: {excluded_containers}")
 
-# Process JSON files to include data from all files for training
-def process_json_file(file_path, file_label):
-    global records
-    
-    with open(file_path, 'r', encoding='utf-8') as json_file:
-        try:
-            data = json.load(json_file)
-        except json.JSONDecodeError as e:
-            print(f"Error decoding JSON in file {file_path}: {e}")
-            return
-   
-    if not isinstance(data, dict):
-        print(f"Unexpected structure in {file_path}, skipping...")
-        return
-
-    for key, entries in data.items():
-        if isinstance(entries, list):
-            for entry in entries:
-                if isinstance(entry, dict) and 'ContainerValue' in entry:
-                    records.append({
-                        'FileLabel': file_label,
-                        'ContainerValue': entry['ContainerValue'],
-                        'ComponentGroup': entry.get('ComponentGroup'),
-                        'ContainerName': entry.get('ContainerName')
-                    })
-                else:
-                    print(f"Invalid entry structure in {file_path}: {entry}")
-        else:
-            print(f"Expected a list for key '{key}' in {file_path}, but got {type(entries).__name__}")
 
 for file_name in os.listdir(FOLDER_PATH):
     if file_name.endswith('.json'):

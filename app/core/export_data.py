@@ -1,3 +1,5 @@
+import pandas as pd
+
 # Load container names within each component group and export to Excel
 def export_container_groups_to_excel(component_groups, output_path):
     # Check if component_groups has data
