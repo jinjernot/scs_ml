@@ -7,36 +7,12 @@ from sklearn.naive_bayes import MultinomialNB
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 from sklearn.utils import resample
+
+
 from config.paths import *
+from app.core.load_data import *
 
 records = []
-
-# Load excluded words
-def load_excluded_words(file_path):
-    try:
-        with open(file_path, 'r', encoding='utf-8') as json_file:
-            data = json.load(json_file)
-            return data.get("excluded_words", [])
-    except FileNotFoundError:
-        print(f"Excluded words file not found at {file_path}")
-        return []
-    except json.JSONDecodeError:
-        print(f"Error decoding JSON file: {file_path}")
-        return []
-
-# Load component groups
-def load_component_groups(file_path):
-    try:
-        with open(file_path, 'r', encoding='utf-8') as json_file:
-            data = json.load(json_file)
-            return data.get("component_groups", [])
-    except FileNotFoundError:
-        print(f"Component groups file not found at {file_path}")
-        return []
-    except json.JSONDecodeError:
-        print(f"Error decoding JSON file: {file_path}")
-        return []
-
 
 # Load container names within each component group and export to Excel
 def export_container_groups_to_excel(component_groups, output_path):
@@ -84,18 +60,6 @@ component_groups = load_component_groups(COMPONENT_GROUPS_PATH)
 # Export container groups to Excel
 export_container_groups_to_excel(component_groups, CONTAINER_GROUPS_OUTPUT_PATH)
 
-# Load excluded containers
-def load_excluded_containers(file_path):
-    try:
-        with open(file_path, 'r', encoding='utf-8') as json_file:
-            data = json.load(json_file)
-            return data.get("excluded_containers", [])
-    except FileNotFoundError:
-        print(f"Excluded containers file not found at {file_path}")
-        return []
-    except json.JSONDecodeError:
-        print(f"Error decoding JSON file: {file_path}")
-        return []
 
 # Load data
 excluded_words = load_excluded_words(EXCLUDED_WORDS_PATH)
