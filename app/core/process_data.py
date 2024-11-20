@@ -1,7 +1,5 @@
 import json
 
-
-
 records = []
 # Process JSON files to include data from all files for training
 def process_json_file(file_path, file_label):

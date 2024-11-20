@@ -12,8 +12,6 @@ from app.core.load_data import *
 from app.core.export_data import *
 from app.core.process_data import *
 
-
-
 # Load component groups from JSON file
 component_groups = load_component_groups(COMPONENT_GROUPS_PATH)
 
@@ -84,6 +82,17 @@ else:
 
         # Load the input data from the specified Excel file for prediction
         input_df = pd.read_excel(INPUT_EXCEL_PATH)
+        
+        # Load JSON data
+        with open(COMPONENT_GROUPS_PATH, 'r') as json_file: # Server
+        #with open('app/data/component_groups.json', 'r') as json_file: # Local
+            json_data = json.load(json_file)
+        groups = json_data['Groups']
+        
+        # Filter rows based on criteria from JSON data
+        filtered_rows = input_df[input_df.apply(lambda row: any(row['ComponentGroup'] == group['ComponentGroup'] and row['ContainerName'] in group['ContainerName'] for group in groups), axis=1)]
+        rows_to_delete = input_df.index.difference(filtered_rows.index)
+        input_df = input_df.drop(rows_to_delete)
 
         # Drop rows where 'ContainerValue' is '[BLANK]' or null
         input_df = input_df.dropna(subset=['ContainerValue', 'ComponentGroup'])
